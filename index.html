@@ -5,33 +5,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>アクセサリー成長シミュレーター</title>
     <style>
-        body { font-family: -apple-system, sans-serif; background-color: #f5f7fa; margin: 0; padding: 15px; color: #333; }
-        .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
-        .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 15px 20px; }
-        .header h1 { margin: 0; color: #3b82f6; font-size: 1.4rem; font-weight: bold; text-align: left; }
+        /* 全体の背景と文字 */
+        body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
+        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
         
-        /* 入力欄全体：横に5列並べる設定 */
-        .input-section { padding: 15px 20px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; background: #fff; }
+        /* ヘッダー */
+        .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 12px 15px; }
+        .header h1 { margin: 0; color: #3b82f6; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        
+        /* 入力エリア：2枚目の画像のように隙間なく配置 */
+        .input-section { padding: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #fff; }
         .field { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 0.7rem; font-weight: bold; color: #666; }
+        select, input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
         
-        label { font-size: 0.75rem; font-weight: bold; color: #666; margin-bottom: 1px; }
-        select, input { padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; outline: none; box-sizing: border-box; width: 100%; transition: border-color 0.2s; }
-        select:focus, input:focus { border-color: #3b82f6; }
+        /* ボーナス表示バー */
+        .info-bar { padding: 10px 15px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.85rem; }
         
-        .info-bar { padding: 12px 20px; background-color: #fffaf0; border-top: 1px solid #fee2e2; color: #dc2626; font-weight: bold; font-size: 0.9rem; text-align: left; }
+        /* ★ 表のデザイン：2枚目の画像のように線をしっかり引く ★ */
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; border-top: 1px solid #ddd; }
+        th { background-color: #4a90e2; color: white; padding: 10px 5px; font-size: 0.75rem; text-align: center; border: 1px solid #357abd; }
+        td { padding: 10px 5px; border: 1px solid #eee; text-align: center; font-size: 0.85rem; }
         
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background-color: #3b82f6; color: white; padding: 12px; font-size: 0.85rem; text-align: center; font-weight: bold; border-right: 1px solid rgba(255,255,255,0.2); }
-        th:last-child { border-right: none; }
-        td { padding: 10px; border-bottom: 1px solid #e5e7eb; text-align: right; font-size: 0.9rem; white-space: nowrap; }
-        .target-lv { text-align: left; font-weight: bold; color: #1e40af; padding-left: 20px; }
-        .stat-val { color: #059669; font-weight: bold; text-align: center; }
-        .achieved { color: #9ca3af !important; }
-        .highlight-day { color: #ef4444; font-weight: bold; padding-right: 20px; }
+        /* 特定の列の調整 */
+        .target-lv { background-color: #f9fbff; font-weight: bold; color: #4a90e2; }
+        .stat-val { color: #2e7d32; font-weight: bold; }
+        .highlight-day { color: #d32f2f; font-weight: bold; }
+        
+        /* 達成済みの薄い色 */
+        .achieved { background-color: #f5f5f5; color: #bbb !important; }
+        .achieved .stat-val, .achieved .highlight-day { color: #bbb !important; }
 
-        @media (max-width: 768px) {
-            .input-section { grid-template-columns: 1fr 1fr; gap: 10px; }
-            th, td { font-size: 0.75rem; padding: 8px 4px; }
+        @media (max-width: 480px) {
+            .input-section { grid-template-columns: 1fr 1fr; }
+            th, td { font-size: 0.7rem; padding: 8px 2px; }
         }
     </style>
 </head>
@@ -51,16 +58,16 @@
         <div class="field"><label>時給(ベース)</label><input type="number" id="hourlyExp" value="30000" oninput="calculate()"></div>
     </div>
 
-    <div class="info-bar" id="infoLabel">時給(ボーナス込): 30,000 経験値 | 初期体力: -</div>
+    <div class="info-bar" id="infoLabel">時給(ボーナス込): 30,000 | 初期ステータス: -</div>
 
     <table>
         <thead>
             <tr>
-                <th style="width: 15%;">目標Lv</th>
-                <th style="width: 25%;">ステータス</th>
-                <th style="width: 25%;">必要経験値(累計)</th>
-                <th style="width: 20%;">残り時間</th>
-                <th style="width: 15%;">残り日数</th>
+                <th style="width: 18%;">目標Lv</th>
+                <th style="width: 24%;">ステータス</th>
+                <th style="width: 22%;">必要経験値</th>
+                <th style="width: 18%;">残り時間</th>
+                <th style="width: 18%;">残り日数</th>
             </tr>
         </thead>
         <tbody id="resultTable"></tbody>
@@ -68,6 +75,7 @@
 </div>
 
 <script>
+// アクセサリーデータ（変更なし）
 const accMaster = [
     { name: "命脈の科学式", exp: 100, stat: 155, type: "flat", label: "体力" },
     { name: "鼓動核", exp: 300, stat: 15, type: "percent", label: "体力" },
@@ -119,7 +127,7 @@ function calculate() {
     const rate = hExp * (1 + (rings * 0.1));
     const unit = (curType === "percent") ? "%" : "";
     
-    document.getElementById('infoLabel').innerText = `時給(ボーナス込): ${Math.floor(rate).toLocaleString()} 経験値 | 初期${curLabel}: ${curStat}${unit}`;
+    document.getElementById('infoLabel').innerText = `時給(込): ${Math.floor(rate).toLocaleString()} | 初期${curLabel}: ${curStat}${unit}`;
 
     const cTotal = (0.5 * cLv**2 - 5 * cLv) * bExp;
     const tbody = document.getElementById('resultTable');
@@ -134,12 +142,12 @@ function calculate() {
         const isDone = lv <= cLv;
         const rowClass = isDone ? 'achieved' : '';
 
-        tbody.innerHTML += `<tr>
-            <td class="target-lv ${rowClass}">Lv ${lv}</td>
-            <td class="stat-val ${rowClass}">${curLabel} ${val.toFixed(1)}${unit}</td>
-            <td class="${rowClass}">${Math.floor(tTotal).toLocaleString()}</td>
-            <td class="${rowClass}">${isDone ? "0.0" : hours.toFixed(1)} h</td>
-            <td class="highlight-day ${rowClass}">${isDone ? "0.0" : (hours/24).toFixed(1)}日</td>
+        tbody.innerHTML += `<tr class="${rowClass}">
+            <td class="target-lv">Lv ${lv}</td>
+            <td class="stat-val">${curLabel} ${val.toFixed(1)}${unit}</td>
+            <td>${Math.floor(tTotal).toLocaleString()}</td>
+            <td>${isDone ? "0.0" : hours.toFixed(1)}h</td>
+            <td class="highlight-day">${isDone ? "0.0" : (hours/24).toFixed(1)}日</td>
         </tr>`;
     }
 }
