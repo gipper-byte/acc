@@ -44,10 +44,10 @@
             <label>アクセサリーを選択</label>
             <select id="accSelect" onchange="loadAccData()"><option value="">-- 選択 --</option></select>
         </div>
-        <div class="field"><label>現在のレベル</label><input type="number" id="currentLv" value="1" oninput="calculate()"></div>
-        <div class="field"><label>初期経験値</label><input type="number" id="baseExp" value="100" oninput="calculate()"></div>
-        <div class="field"><label>指輪の数(+10%×n)</label><input type="number" id="rings" value="0" oninput="calculate()"></div>
-        <div class="field"><label>時給(ベース)</label><input type="number" id="hourlyExp" value="30000" oninput="calculate()"></div>
+        <div class="field"><label>現在のレベル</label><input type="number" id="currentLv" value="1" oninput="saveAndCalc()"></div>
+        <div class="field"><label>初期経験値</label><input type="number" id="baseExp" value="100" oninput="saveAndCalc()"></div>
+        <div class="field"><label>指輪の数(+10%×n)</label><input type="number" id="rings" value="0" oninput="saveAndCalc()"></div>
+        <div class="field"><label>時給(ベース)</label><input type="number" id="hourlyExp" value="30000" oninput="saveAndCalc()"></div>
     </div>
 
     <div class="info-bar" id="infoLabel">時給(込): 30,000 | 初期ステータス: -</div>
@@ -102,11 +102,38 @@ accMaster.forEach((acc, i) => { select.innerHTML += `<option value="${i}">${acc.
 
 let curStat = 0, curType = "", curLabel = "";
 
+// ページ読み込み時に保存されたデータを復元
+window.onload = function() {
+    const saved = localStorage.getItem('acc_sim_data');
+    if (saved) {
+        const data = JSON.parse(saved);
+        select.value = data.selectIndex;
+        document.getElementById('currentLv').value = data.currentLv;
+        document.getElementById('baseExp').value = data.baseExp;
+        document.getElementById('rings').value = data.rings;
+        document.getElementById('hourlyExp').value = data.hourlyExp;
+        loadAccData();
+    }
+};
+
 function loadAccData() {
     const acc = accMaster[select.value];
     if (!acc) return;
     document.getElementById('baseExp').value = acc.exp;
     curStat = acc.stat; curType = acc.type; curLabel = acc.label;
+    saveAndCalc();
+}
+
+function saveAndCalc() {
+    // データを保存
+    const data = {
+        selectIndex: select.value,
+        currentLv: document.getElementById('currentLv').value,
+        baseExp: document.getElementById('baseExp').value,
+        rings: document.getElementById('rings').value,
+        hourlyExp: document.getElementById('hourlyExp').value
+    };
+    localStorage.setItem('acc_sim_data', JSON.stringify(data));
     calculate();
 }
 
@@ -118,6 +145,9 @@ function calculate() {
     const rate = hExp * (1 + (rings * 0.1));
     const unit = (curType === "percent") ? "%" : "";
     
+    const acc = accMaster[select.value];
+    if(acc) { curStat = acc.stat; curType = acc.type; curLabel = acc.label; }
+    
     document.getElementById('infoLabel').innerText = `時給(込): ${Math.floor(rate).toLocaleString()} | 初期${curLabel}: ${curStat}${unit}`;
 
     const cTotal = (0.5 * cLv**2 - 5 * cLv) * bExp;
@@ -125,7 +155,6 @@ function calculate() {
     tbody.innerHTML = '';
     const gRate = (curType === "flat") ? 0.1 : 0.01;
 
-    // 表示するレベルのリストに「1」を追加
     const levels = [1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
 
     levels.forEach(lv => {
