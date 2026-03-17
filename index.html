@@ -10,10 +10,14 @@
         .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 12px 15px; }
         .header h1 { margin: 0; color: #3b82f6; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
         
+        /* 入力エリア */
         .input-section { padding: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #fff; }
         .field { display: flex; flex-direction: column; gap: 4px; }
         label { font-size: 0.7rem; font-weight: bold; color: #666; }
         select, input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
+        
+        /* 注意書きのスタイル */
+        .notice { padding: 0 15px 10px 15px; font-size: 0.75rem; color: #888; text-align: left; background: #fff; }
         
         .info-bar { padding: 10px 15px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.85rem; }
         
@@ -49,6 +53,8 @@
         <div class="field"><label>指輪の数(+10%×n)</label><input type="number" id="rings" value="0" oninput="saveAndCalc()"></div>
         <div class="field"><label>時給(ベース)</label><input type="number" id="hourlyExp" value="30000" oninput="saveAndCalc()"></div>
     </div>
+
+    <div class="notice">※ レベル上限は各アクセで異なります</div>
 
     <div class="info-bar" id="infoLabel">時給(込): 30,000 | 初期ステータス: -</div>
 
@@ -87,13 +93,13 @@ const accMaster = [
     { name: "慈縛心", exp: 100, stat: 100, type: "flat", label: "回復" },
     { name: "メモリアルページ", exp: 100, stat: 30, type: "percent", label: "経験値" },
     { name: "賢者の盃", exp: 100, stat: 50, type: "percent", label: "経験値" },
-    { name: "コンパス", exp: 100, stat: 100, type: "percent", label: "経験値" },
+    { name: "エクスペディアコンパス", exp: 100, stat: 100, type: "percent", label: "経験値" },
     { name: "知耀杯", exp: 1000, stat: 180, type: "percent", label: "経験値" },
     { name: "テイムマスク", exp: 100, stat: 30, type: "percent", label: "捕獲" },
     { name: "魅誘盃", exp: 100, stat: 50, type: "percent", label: "捕獲" },
-    { name: "レター", exp: 100, stat: 80, type: "percent", label: "捕獲" },
+    { name: "コンタクトレター", exp: 100, stat: 80, type: "percent", label: "捕獲" },
     { name: "拘魂鎖", exp: 1000, stat: 100, type: "percent", label: "捕獲" },
-    { name: "リング", exp: 100, stat: 30, type: "percent", label: "ドロップ" },
+    { name: "オービタルリング", exp: 100, stat: 30, type: "percent", label: "ドロップ" },
     { name: "収集機", exp: 1000, stat: 50, type: "percent", label: "ドロップ" }
 ];
 
@@ -157,7 +163,6 @@ function calculate() {
 
     levels.forEach(lv => {
         const tTotal = (lv === 1) ? 0 : (0.5 * lv**2 - 5 * lv) * bExp;
-        // ★修正点：tTotal（そのレベルの累計）からcTotal（今のレベルの累計）を引いて、差分を出す
         const diff = Math.max(0, tTotal - cTotal);
         const val = curStat * (1 + (lv - 1) * gRate);
         const hours = diff / rate;
