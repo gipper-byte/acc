@@ -5,34 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>アクセサリー成長シミュレーター</title>
     <style>
-        /* 全体の背景と文字 */
         body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
         .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        
-        /* ヘッダー */
         .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 12px 15px; }
         .header h1 { margin: 0; color: #3b82f6; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
         
-        /* 入力エリア：2枚目の画像のように隙間なく配置 */
         .input-section { padding: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #fff; }
         .field { display: flex; flex-direction: column; gap: 4px; }
         label { font-size: 0.7rem; font-weight: bold; color: #666; }
         select, input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
         
-        /* ボーナス表示バー */
         .info-bar { padding: 10px 15px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.85rem; }
         
-        /* ★ 表のデザイン：2枚目の画像のように線をしっかり引く ★ */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; border-top: 1px solid #ddd; }
         th { background-color: #4a90e2; color: white; padding: 10px 5px; font-size: 0.75rem; text-align: center; border: 1px solid #357abd; }
         td { padding: 10px 5px; border: 1px solid #eee; text-align: center; font-size: 0.85rem; }
         
-        /* 特定の列の調整 */
         .target-lv { background-color: #f9fbff; font-weight: bold; color: #4a90e2; }
         .stat-val { color: #2e7d32; font-weight: bold; }
         .highlight-day { color: #d32f2f; font-weight: bold; }
         
-        /* 達成済みの薄い色 */
         .achieved { background-color: #f5f5f5; color: #bbb !important; }
         .achieved .stat-val, .achieved .highlight-day { color: #bbb !important; }
 
@@ -58,7 +50,7 @@
         <div class="field"><label>時給(ベース)</label><input type="number" id="hourlyExp" value="30000" oninput="calculate()"></div>
     </div>
 
-    <div class="info-bar" id="infoLabel">時給(ボーナス込): 30,000 | 初期ステータス: -</div>
+    <div class="info-bar" id="infoLabel">時給(込): 30,000 | 初期ステータス: -</div>
 
     <table>
         <thead>
@@ -75,7 +67,6 @@
 </div>
 
 <script>
-// アクセサリーデータ（変更なし）
 const accMaster = [
     { name: "命脈の科学式", exp: 100, stat: 155, type: "flat", label: "体力" },
     { name: "鼓動核", exp: 300, stat: 15, type: "percent", label: "体力" },
@@ -134,8 +125,11 @@ function calculate() {
     tbody.innerHTML = '';
     const gRate = (curType === "flat") ? 0.1 : 0.01;
 
-    for (let lv = 100; lv <= 1000; lv += 100) {
-        const tTotal = (0.5 * lv**2 - 5 * lv) * bExp;
+    // 表示するレベルのリストに「1」を追加
+    const levels = [1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+
+    levels.forEach(lv => {
+        const tTotal = (lv === 1) ? 0 : (0.5 * lv**2 - 5 * lv) * bExp;
         const diff = Math.max(0, tTotal - cTotal);
         const val = curStat * (1 + (lv - 1) * gRate);
         const hours = diff / rate;
@@ -149,7 +143,7 @@ function calculate() {
             <td>${isDone ? "0.0" : hours.toFixed(1)}h</td>
             <td class="highlight-day">${isDone ? "0.0" : (hours/24).toFixed(1)}日</td>
         </tr>`;
-    }
+    });
 }
 </script>
 </body>
