@@ -10,29 +10,34 @@
         .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 15px 20px; }
         .header h1 { margin: 0; color: #3b82f6; font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
         
-        .input-section { padding: 15px 20px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; background: #fff; }
+        /* 入力エリア：1列目のアクセ選択を大きく、他を4列に配置 */
+        .input-section { padding: 15px 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; background: #fff; }
         .field { display: flex; flex-direction: column; gap: 4px; }
-        label { font-size: 0.75rem; font-weight: bold; color: #666; }
-        select, input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; outline: none; width: 100%; box-sizing: border-box; }
-        select:focus, input:focus { border-color: #3b82f6; }
-
-        optgroup { font-style: normal; font-weight: bold; color: #3b82f6; background: #f0f7ff; }
-
-        .notice { padding: 0 20px 10px 20px; font-size: 0.75rem; color: #888; background: #fff; }
-        .info-bar { padding: 12px 20px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.9rem; }
+        .field:first-child { grid-column: 1 / 2; }
         
+        /* スマホ/PC共通で入力しやすく調整 */
+        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; width: 100%; box-sizing: border-box; }
+        label { font-size: 0.85rem; font-weight: bold; color: #666; margin-bottom: 2px; }
+
+        .notice { padding: 5px 20px 10px 20px; font-size: 0.8rem; color: #888; background: #fff; }
+        .info-bar { padding: 12px 20px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; }
+        
+        /* 枠線（ボーダー）をスクリーンショット通りに設定 */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background-color: #4a90e2; color: white; padding: 12px 8px; font-size: 0.8rem; text-align: center; }
-        td { padding: 12px 8px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
+        th { background-color: #4a90e2; color: white; padding: 12px 5px; font-size: 0.9rem; text-align: center; border: 1px solid #3b82f6; }
+        td { padding: 12px 5px; border: 1px solid #eee; text-align: center; font-size: 0.95rem; }
         
-        .target-lv { font-weight: bold; color: #4a90e2; }
-        .stat-val { color: #2e7d32; font-weight: bold; }
-        .highlight-day { color: #d32f2f; font-weight: bold; }
+        /* 特定の列の装飾 */
+        .target-lv { font-weight: bold; color: #4a90e2; } /* 目標Lvの青文字 */
+        .stat-val { color: #2e7d32; font-weight: bold; } /* ステータスの緑文字 */
+        .highlight-day { color: #d32f2f; font-weight: bold; } /* 残り日数の赤文字 */
+        
         .achieved { background-color: #f9f9f9; color: #ccc !important; }
+        .achieved td { color: #ccc !important; }
 
-        @media (max-width: 800px) {
-            .input-section { grid-template-columns: repeat(2, 1fr); }
-            .input-section .field:first-child { grid-column: span 2; }
+        @media (max-width: 600px) {
+            .input-section { grid-template-columns: 1fr 1fr; }
+            .field:first-child { grid-column: span 2; }
         }
     </style>
 </head>
@@ -42,10 +47,7 @@
     <div class="header"><h1>💍 アクセサリー成長シミュレーター</h1></div>
     
     <div class="input-section">
-        <div class="field">
-            <label>カテゴリー・アクセを選択</label>
-            <select id="accSelect" onchange="loadAccData()"></select>
-        </div>
+        <div class="field"><label>アクセサリーを選択</label><select id="accSelect" onchange="loadAccData()"></select></div>
         <div class="field"><label>現在のレベル</label><input type="number" id="currentLv" value="1" oninput="saveAndCalc()"></div>
         <div class="field"><label>初期経験値</label><input type="number" id="baseExp" value="100" oninput="saveAndCalc()"></div>
         <div class="field"><label>指輪の数(+10%×n)</label><input type="number" id="rings" value="0" oninput="saveAndCalc()"></div>
@@ -53,16 +55,16 @@
     </div>
 
     <div class="notice">※ レベル上限は各アクセで異なります</div>
-    <div class="info-bar" id="infoLabel"></div>
+    <div id="infoLabel" class="info-bar"></div>
 
     <table>
         <thead>
             <tr>
-                <th style="width: 15%;">目標Lv</th>
-                <th style="width: 23%;">ステータス</th>
-                <th style="width: 26%;">残り必要EXP</th>
-                <th style="width: 18%;">残り時間</th>
-                <th style="width: 18%;">残り日数</th>
+                <th style="width: 16%;">目標Lv</th>
+                <th style="width: 22%;">ステータス</th>
+                <th style="width: 28%;">残り必要EXP</th>
+                <th style="width: 17%;">残り時間</th>
+                <th style="width: 17%;">残り日数</th>
             </tr>
         </thead>
         <tbody id="resultTable"></tbody>
@@ -70,6 +72,7 @@
 </div>
 
 <script>
+// データと計算ロジック（最新版を維持）
 const categorizedAcc = {
     "体力": [
         { name: "命脈の科学式", exp: 100, stat: 155, type: "flat", label: "体力" },
@@ -176,7 +179,6 @@ function calculate() {
     const rings = parseInt(document.getElementById('rings').value) || 0;
     const cLv = parseInt(document.getElementById('currentLv').value) || 1;
     
-    // 指輪倍率: 1個で+10%
     const rate = hExp * (1 + (rings * 0.1));
     const acc = accMaster[select.value];
     if(!acc) return;
@@ -184,7 +186,6 @@ function calculate() {
     const unit = (acc.type === "percent") ? "%" : "";
     document.getElementById('infoLabel').innerText = `時給(込): ${Math.floor(rate).toLocaleString()} | 初期${acc.label}: ${acc.stat}${unit}`;
 
-    // 確定計算式: (0.5*n^2 - 0.5*n) * 初期経験値
     const getTotalExp = (n) => (0.5 * Math.pow(n, 2) - 0.5 * n) * bExp;
     const cTotal = getTotalExp(cLv);
 
