@@ -6,35 +6,33 @@
     <title>アクセサリー成長シミュレーター</title>
     <style>
         body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 12px 15px; }
-        .header h1 { margin: 0; color: #3b82f6; font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+        .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
+        .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 15px 20px; }
+        .header h1 { margin: 0; color: #3b82f6; font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
         
-        /* 入力エリア */
-        .input-section { padding: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: #fff; }
+        .input-section { padding: 15px 20px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; background: #fff; }
         .field { display: flex; flex-direction: column; gap: 4px; }
-        label { font-size: 0.7rem; font-weight: bold; color: #666; }
-        select, input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
+        label { font-size: 0.75rem; font-weight: bold; color: #666; }
+        select, input { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; outline: none; width: 100%; box-sizing: border-box; }
+        select:focus, input:focus { border-color: #3b82f6; }
+
+        optgroup { font-style: normal; font-weight: bold; color: #3b82f6; background: #f0f7ff; }
+
+        .notice { padding: 0 20px 10px 20px; font-size: 0.75rem; color: #888; background: #fff; }
+        .info-bar { padding: 12px 20px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.9rem; }
         
-        /* 注意書きのスタイル */
-        .notice { padding: 0 15px 10px 15px; font-size: 0.75rem; color: #888; text-align: left; background: #fff; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th { background-color: #4a90e2; color: white; padding: 12px 8px; font-size: 0.8rem; text-align: center; }
+        td { padding: 12px 8px; border-bottom: 1px solid #eee; text-align: center; font-size: 0.9rem; }
         
-        .info-bar { padding: 10px 15px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.85rem; }
-        
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; border-top: 1px solid #ddd; }
-        th { background-color: #4a90e2; color: white; padding: 10px 5px; font-size: 0.75rem; text-align: center; border: 1px solid #357abd; }
-        td { padding: 10px 5px; border: 1px solid #eee; text-align: center; font-size: 0.85rem; }
-        
-        .target-lv { background-color: #f9fbff; font-weight: bold; color: #4a90e2; }
+        .target-lv { font-weight: bold; color: #4a90e2; }
         .stat-val { color: #2e7d32; font-weight: bold; }
         .highlight-day { color: #d32f2f; font-weight: bold; }
-        
-        .achieved { background-color: #f5f5f5; color: #bbb !important; }
-        .achieved .stat-val, .achieved .highlight-day { color: #bbb !important; }
+        .achieved { background-color: #f9f9f9; color: #ccc !important; }
 
-        @media (max-width: 480px) {
-            .input-section { grid-template-columns: 1fr 1fr; }
-            th, td { font-size: 0.7rem; padding: 8px 2px; }
+        @media (max-width: 800px) {
+            .input-section { grid-template-columns: repeat(2, 1fr); }
+            .input-section .field:first-child { grid-column: span 2; }
         }
     </style>
 </head>
@@ -45,8 +43,8 @@
     
     <div class="input-section">
         <div class="field">
-            <label>アクセサリーを選択</label>
-            <select id="accSelect" onchange="loadAccData()"><option value="">-- 選択 --</option></select>
+            <label>カテゴリー・アクセを選択</label>
+            <select id="accSelect" onchange="loadAccData()"></select>
         </div>
         <div class="field"><label>現在のレベル</label><input type="number" id="currentLv" value="1" oninput="saveAndCalc()"></div>
         <div class="field"><label>初期経験値</label><input type="number" id="baseExp" value="100" oninput="saveAndCalc()"></div>
@@ -55,8 +53,7 @@
     </div>
 
     <div class="notice">※ レベル上限は各アクセで異なります</div>
-
-    <div class="info-bar" id="infoLabel">時給(込): 30,000 | 初期ステータス: -</div>
+    <div class="info-bar" id="infoLabel"></div>
 
     <table>
         <thead>
@@ -73,59 +70,91 @@
 </div>
 
 <script>
-const accMaster = [
-    { name: "命脈の科学式", exp: 100, stat: 155, type: "flat", label: "体力" },
-    { name: "鼓動核", exp: 300, stat: 15, type: "percent", label: "体力" },
-    { name: "ウィンドクレスト", exp: 100, stat: 135, type: "flat", label: "攻速" },
-    { name: "閃月星", exp: 300, stat: 15, type: "percent", label: "攻速" },
-    { name: "ブラッドトニック", exp: 100, stat: 90, type: "flat", label: "攻撃力" },
-    { name: "力瓶", exp: 500, stat: 20, type: "percent", label: "攻撃力" },
-    { name: "アークグリモワール", exp: 100, stat: 30, type: "flat", label: "魔力" },
-    { name: "創胎珠", exp: 500, stat: 20, type: "percent", label: "魔力" },
-    { name: "フォースモジュール", exp: 100, stat: 80, type: "flat", label: "防御" },
-    { name: "騎士の心得", exp: 300, stat: 15, type: "percent", label: "防御" },
-    { name: "迷盾陣", exp: 1000, stat: 50, type: "percent", label: "防御" },
-    { name: "マギバインド", exp: 100, stat: 25, type: "percent", label: "魔防" },
-    { name: "結界嵐", exp: 300, stat: 15, type: "percent", label: "魔防" },
-    { name: "ヘキサスカル", exp: 1000, stat: 50, type: "percent", label: "魔防" },
-    { name: "ラッキートランプ", exp: 100, stat: 99, type: "flat", label: "幸運" },
-    { name: "運命眼", exp: 300, stat: 25, type: "percent", label: "幸運" },
-    { name: "慈縛心", exp: 100, stat: 100, type: "flat", label: "回復" },
-    { name: "メモリアルページ", exp: 100, stat: 30, type: "percent", label: "経験値" },
-    { name: "賢者の盃", exp: 100, stat: 50, type: "percent", label: "経験値" },
-    { name: "エクスペディアコンパス", exp: 100, stat: 100, type: "percent", label: "経験値" },
-    { name: "知耀杯", exp: 1000, stat: 180, type: "percent", label: "経験値" },
-    { name: "テイムマスク", exp: 100, stat: 30, type: "percent", label: "捕獲" },
-    { name: "魅誘盃", exp: 100, stat: 50, type: "percent", label: "捕獲" },
-    { name: "コンタクトレター", exp: 100, stat: 80, type: "percent", label: "捕獲" },
-    { name: "拘魂鎖", exp: 1000, stat: 100, type: "percent", label: "捕獲" },
-    { name: "オービタルリング", exp: 100, stat: 30, type: "percent", label: "ドロップ" },
-    { name: "収集機", exp: 1000, stat: 50, type: "percent", label: "ドロップ" }
-];
-
-const select = document.getElementById('accSelect');
-accMaster.forEach((acc, i) => { select.innerHTML += `<option value="${i}">${acc.name}</option>`; });
-
-let curStat = 0, curType = "", curLabel = "";
-
-window.onload = function() {
-    const saved = localStorage.getItem('acc_sim_data');
-    if (saved) {
-        const data = JSON.parse(saved);
-        select.value = data.selectIndex;
-        document.getElementById('currentLv').value = data.currentLv;
-        document.getElementById('baseExp').value = data.baseExp;
-        document.getElementById('rings').value = data.rings;
-        document.getElementById('hourlyExp').value = data.hourlyExp;
-        loadAccData();
-    }
+const categorizedAcc = {
+    "体力": [
+        { name: "命脈の科学式", exp: 100, stat: 155, type: "flat", label: "体力" },
+        { name: "鼓動核", exp: 300, stat: 15, type: "percent", label: "体力" },
+        { name: "陽魂環", exp: 1000, stat: 30, type: "percent", label: "体力" }
+    ],
+    "攻撃力": [
+        { name: "ブラッドトニック", exp: 100, stat: 90, type: "flat", label: "攻撃力" },
+        { name: "力瓶", exp: 500, stat: 20, type: "percent", label: "攻撃力" },
+        { name: "武器照合", exp: 1000, stat: 30, type: "percent", label: "攻撃力" }
+    ],
+    "魔力": [
+        { name: "アークグリモワール", exp: 100, stat: 30, type: "flat", label: "魔力" },
+        { name: "創胎珠", exp: 500, stat: 20, type: "percent", label: "魔力" },
+        { name: "マナランタン", exp: 1000, stat: 30, type: "percent", label: "魔力" }
+    ],
+    "防御力": [
+        { name: "フォースモジュール", exp: 100, stat: 80, type: "flat", label: "防御" },
+        { name: "騎士の心得", exp: 300, stat: 15, type: "percent", label: "防御" },
+        { name: "迷盾陣", exp: 1000, stat: 50, type: "percent", label: "防御" }
+    ],
+    "魔法防御力": [
+        { name: "マギバインド", exp: 100, stat: 25, type: "percent", label: "魔防" },
+        { name: "結界嵐", exp: 300, stat: 15, type: "percent", label: "魔防" },
+        { name: "ヘキサスカル", exp: 1000, stat: 50, type: "percent", label: "魔防" }
+    ],
+    "幸運": [
+        { name: "ラッキートランプ", exp: 100, stat: 99, type: "flat", label: "幸運" },
+        { name: "運命眼", exp: 300, stat: 25, type: "percent", label: "幸運" }
+    ],
+    "攻撃速度": [
+        { name: "ウィンドクレスト", exp: 100, stat: 135, type: "flat", label: "攻速" },
+        { name: "閃月星", exp: 300, stat: 15, type: "percent", label: "攻速" }
+    ],
+    "経験値": [
+        { name: "メモリアルページ", exp: 100, stat: 30, type: "percent", label: "経験値" },
+        { name: "賢者の盃", exp: 100, stat: 50, type: "percent", label: "経験値" },
+        { name: "エクスペディアコンパス", exp: 100, stat: 100, type: "percent", label: "経験値" },
+        { name: "知耀杯", exp: 1000, stat: 180, type: "percent", label: "経験値" }
+    ],
+    "捕獲": [
+        { name: "テイムマスク", exp: 100, stat: 30, type: "percent", label: "捕獲" },
+        { name: "魅誘盃", exp: 100, stat: 50, type: "percent", label: "捕獲" },
+        { name: "コンタクトレター", exp: 100, stat: 80, type: "percent", label: "捕獲" },
+        { name: "拘魂鎖", exp: 1000, stat: 100, type: "percent", label: "捕獲" }
+    ],
+    "ドロップ": [
+        { name: "オービタルリング", exp: 100, stat: 30, type: "percent", label: "ドロップ" },
+        { name: "収集機", exp: 1000, stat: 50, type: "percent", label: "ドロップ" }
+    ],
+    "回復": [
+        { name: "慈縛心", exp: 100, stat: 100, type: "heal", label: "回復" }
+    ]
 };
 
-function loadAccData() {
+const accMaster = [];
+const select = document.getElementById('accSelect');
+Object.keys(categorizedAcc).forEach(category => {
+    const group = document.createElement('optgroup');
+    group.label = category;
+    categorizedAcc[category].forEach(acc => {
+        const option = document.createElement('option');
+        option.value = accMaster.length;
+        option.textContent = acc.name;
+        group.appendChild(option);
+        accMaster.push(acc);
+    });
+    select.appendChild(group);
+});
+
+window.onload = function() {
+    const saved = localStorage.getItem('acc_sim_data_v2');
+    if (saved) {
+        const data = JSON.parse(saved);
+        select.value = data.selectIndex || 0;
+        document.getElementById('currentLv').value = data.currentLv || 1;
+        document.getElementById('rings').value = data.rings || 0;
+        document.getElementById('hourlyExp').value = data.hourlyExp || 30000;
+        loadAccData(false);
+    } else { loadAccData(); }
+};
+
+function loadAccData(resetBaseExp = true) {
     const acc = accMaster[select.value];
-    if (!acc) return;
-    document.getElementById('baseExp').value = acc.exp;
-    curStat = acc.stat; curType = acc.type; curLabel = acc.label;
+    if (acc && resetBaseExp) { document.getElementById('baseExp').value = acc.exp; }
     saveAndCalc();
 }
 
@@ -137,7 +166,7 @@ function saveAndCalc() {
         rings: document.getElementById('rings').value,
         hourlyExp: document.getElementById('hourlyExp').value
     };
-    localStorage.setItem('acc_sim_data', JSON.stringify(data));
+    localStorage.setItem('acc_sim_data_v2', JSON.stringify(data));
     calculate();
 }
 
@@ -146,32 +175,35 @@ function calculate() {
     const hExp = parseFloat(document.getElementById('hourlyExp').value) || 0;
     const rings = parseInt(document.getElementById('rings').value) || 0;
     const cLv = parseInt(document.getElementById('currentLv').value) || 1;
+    
+    // 指輪倍率: 1個で+10%
     const rate = hExp * (1 + (rings * 0.1));
-    const unit = (curType === "percent") ? "%" : "";
-    
     const acc = accMaster[select.value];
-    if(acc) { curStat = acc.stat; curType = acc.type; curLabel = acc.label; }
-    
-    document.getElementById('infoLabel').innerText = `時給(込): ${Math.floor(rate).toLocaleString()} | 初期${curLabel}: ${curStat}${unit}`;
+    if(!acc) return;
 
-    const cTotal = (0.5 * cLv**2 - 5 * cLv) * bExp;
+    const unit = (acc.type === "percent") ? "%" : "";
+    document.getElementById('infoLabel').innerText = `時給(込): ${Math.floor(rate).toLocaleString()} | 初期${acc.label}: ${acc.stat}${unit}`;
+
+    // 確定計算式: (0.5*n^2 - 0.5*n) * 初期経験値
+    const getTotalExp = (n) => (0.5 * Math.pow(n, 2) - 0.5 * n) * bExp;
+    const cTotal = getTotalExp(cLv);
+
     const tbody = document.getElementById('resultTable');
     tbody.innerHTML = '';
-    const gRate = (curType === "flat") ? 0.1 : 0.01;
 
     const levels = [1, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+    let gRate = (acc.type === "flat") ? 0.1 : (acc.type === "heal") ? 0.2 : 0.01;
 
     levels.forEach(lv => {
-        const tTotal = (lv === 1) ? 0 : (0.5 * lv**2 - 5 * lv) * bExp;
+        const tTotal = getTotalExp(lv);
         const diff = Math.max(0, tTotal - cTotal);
-        const val = curStat * (1 + (lv - 1) * gRate);
+        const val = acc.stat * (1 + (lv - 1) * gRate);
         const hours = diff / rate;
         const isDone = lv <= cLv;
-        const rowClass = isDone ? 'achieved' : '';
 
-        tbody.innerHTML += `<tr class="${rowClass}">
+        tbody.innerHTML += `<tr class="${isDone ? 'achieved' : ''}">
             <td class="target-lv">Lv ${lv}</td>
-            <td class="stat-val">${curLabel} ${val.toFixed(1)}${unit}</td>
+            <td class="stat-val">${acc.label} ${val.toFixed(1)}${unit}</td>
             <td>${Math.floor(diff).toLocaleString()}</td>
             <td>${isDone ? "0.0" : hours.toFixed(1)}h</td>
             <td class="highlight-day">${isDone ? "0.0" : (hours/24).toFixed(1)}日</td>
