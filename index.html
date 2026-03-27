@@ -2,50 +2,50 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>アクセサリー成長シミュレーター</title>
     <style>
-        body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 10px; color: #333; }
-        .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); overflow: hidden; }
-        .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 15px 20px; }
-        .header h1 { margin: 0; color: #3b82f6; font-size: 1.4rem; display: flex; align-items: center; gap: 8px; }
+        body { font-family: -apple-system, sans-serif; background-color: #f0f2f5; margin: 0; padding: 5px; color: #333; font-size: 14px; }
+        .container { max-width: 950px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; }
+        .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 10px; }
+        .header h1 { margin: 0; color: #3b82f6; font-size: 1.1rem; }
         
-        /* 入力エリア：1列目のアクセ選択を大きく、他を4列に配置 */
-        .input-section { padding: 15px 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; background: #fff; }
-        .field { display: flex; flex-direction: column; gap: 4px; }
-        .field:first-child { grid-column: 1 / 2; }
+        /* 入力エリア：スマホで2列に並べてコンパクトに */
+        .input-section { padding: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #fff; }
+        .field { display: flex; flex-direction: column; }
+        .field:first-child { grid-column: span 2; } /* セレクトボックスだけ横幅いっぱい */
         
-        /* スマホ/PC共通で入力しやすく調整 */
-        input, select { padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; width: 100%; box-sizing: border-box; }
-        label { font-size: 0.85rem; font-weight: bold; color: #666; margin-bottom: 2px; }
+        label { font-size: 0.75rem; font-weight: bold; color: #666; margin-bottom: 2px; }
+        input, select { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
 
-        .notice { padding: 5px 20px 10px 20px; font-size: 0.8rem; color: #888; background: #fff; }
-        .info-bar { padding: 12px 20px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 1rem; border-bottom: 1px solid #eee; }
+        .notice { padding: 0 10px 5px 10px; font-size: 0.7rem; color: #888; }
+        .info-bar { padding: 8px 10px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.85rem; }
         
-        /* 枠線（ボーダー）をスクリーンショット通りに設定 */
+        /* 表の文字サイズを小さくして横幅に収める */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th { background-color: #4a90e2; color: white; padding: 12px 5px; font-size: 0.9rem; text-align: center; border: 1px solid #3b82f6; }
-        td { padding: 12px 5px; border: 1px solid #eee; text-align: center; font-size: 0.95rem; }
+        th { background-color: #4a90e2; color: white; padding: 8px 2px; font-size: 0.75rem; border: 1px solid #3b82f6; }
+        td { padding: 8px 2px; border: 1px solid #eee; text-align: center; font-size: 0.8rem; }
         
-        /* 特定の列の装飾 */
-        .target-lv { font-weight: bold; color: #4a90e2; } /* 目標Lvの青文字 */
-        .stat-val { color: #2e7d32; font-weight: bold; } /* ステータスの緑文字 */
-        .highlight-day { color: #d32f2f; font-weight: bold; } /* 残り日数の赤文字 */
+        .target-lv { font-weight: bold; color: #4a90e2; font-size: 0.85rem; }
+        .stat-val { color: #2e7d32; font-weight: bold; }
+        .highlight-day { color: #d32f2f; font-weight: bold; }
         
-        .achieved { background-color: #f9f9f9; color: #ccc !important; }
+        .achieved { background-color: #f9f9f9; }
         .achieved td { color: #ccc !important; }
 
-        @media (max-width: 600px) {
-            .input-section { grid-template-columns: 1fr 1fr; }
-            .field:first-child { grid-column: span 2; }
+        /* PCでの表示（5列並び） */
+        @media (min-width: 600px) {
+            body { padding: 10px; }
+            .input-section { grid-template-columns: 2fr repeat(4, 1fr); }
+            .field:first-child { grid-column: auto; }
+            th, td { padding: 12px 8px; font-size: 0.9rem; }
+            label { font-size: 0.85rem; }
         }
     </style>
 </head>
 <body>
-
 <div class="container">
     <div class="header"><h1>💍 アクセサリー成長シミュレーター</h1></div>
-    
     <div class="input-section">
         <div class="field"><label>アクセサリーを選択</label><select id="accSelect" onchange="loadAccData()"></select></div>
         <div class="field"><label>現在のレベル</label><input type="number" id="currentLv" value="1" oninput="saveAndCalc()"></div>
@@ -53,18 +53,16 @@
         <div class="field"><label>指輪の数(+10%×n)</label><input type="number" id="rings" value="0" oninput="saveAndCalc()"></div>
         <div class="field"><label>時給(ベース)</label><input type="number" id="hourlyExp" value="30000" oninput="saveAndCalc()"></div>
     </div>
-
     <div class="notice">※ レベル上限は各アクセで異なります</div>
     <div id="infoLabel" class="info-bar"></div>
-
     <table>
         <thead>
             <tr>
-                <th style="width: 16%;">目標Lv</th>
-                <th style="width: 22%;">ステータス</th>
+                <th style="width: 17%;">目標Lv</th>
+                <th style="width: 21%;">ステータス</th>
                 <th style="width: 28%;">残り必要EXP</th>
-                <th style="width: 17%;">残り時間</th>
-                <th style="width: 17%;">残り日数</th>
+                <th style="width: 17%;">時間</th>
+                <th style="width: 17%;">日数</th>
             </tr>
         </thead>
         <tbody id="resultTable"></tbody>
@@ -72,7 +70,7 @@
 </div>
 
 <script>
-// データと計算ロジック（最新版を維持）
+// 前回の「階層分離・100刻み」のJavaScriptコードをここにすべて貼り付けてください
 const categorizedAcc = {
     "体力": [
         { name: "命脈の科学式", exp: 100, stat: 155, type: "flat", label: "体力" },
