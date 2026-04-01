@@ -10,10 +10,9 @@
         .header { background-color: #ffffff; border-bottom: 2px solid #3b82f6; padding: 10px; }
         .header h1 { margin: 0; color: #3b82f6; font-size: 1.1rem; }
         
-        /* 入力エリア：スマホで2列に並べてコンパクトに */
         .input-section { padding: 10px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #fff; }
         .field { display: flex; flex-direction: column; }
-        .field:first-child { grid-column: span 2; } /* セレクトボックスだけ横幅いっぱい */
+        .field:first-child { grid-column: span 2; }
         
         label { font-size: 0.75rem; font-weight: bold; color: #666; margin-bottom: 2px; }
         input, select { padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; width: 100%; box-sizing: border-box; }
@@ -21,7 +20,6 @@
         .notice { padding: 0 10px 5px 10px; font-size: 0.7rem; color: #888; }
         .info-bar { padding: 8px 10px; background-color: #fff5f5; border-top: 1px solid #ffebeb; color: #d32f2f; font-weight: bold; font-size: 0.85rem; }
         
-        /* 表の文字サイズを小さくして横幅に収める */
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         th { background-color: #4a90e2; color: white; padding: 8px 2px; font-size: 0.75rem; border: 1px solid #3b82f6; }
         td { padding: 8px 2px; border: 1px solid #eee; text-align: center; font-size: 0.8rem; }
@@ -33,7 +31,6 @@
         .achieved { background-color: #f9f9f9; }
         .achieved td { color: #ccc !important; }
 
-        /* PCでの表示（5列並び） */
         @media (min-width: 600px) {
             body { padding: 10px; }
             .input-section { grid-template-columns: 2fr repeat(4, 1fr); }
@@ -44,6 +41,7 @@
     </style>
 </head>
 <body>
+
 <div class="container">
     <div class="header"><h1>💍 アクセサリー成長シミュレーター</h1></div>
     <div class="input-section">
@@ -70,7 +68,6 @@
 </div>
 
 <script>
-// 前回の「階層分離・100刻み」のJavaScriptコードをここにすべて貼り付けてください
 const categorizedAcc = {
     "体力": [
         { name: "命脈の科学式", exp: 100, stat: 155, type: "flat", label: "体力" },
@@ -147,15 +144,26 @@ window.onload = function() {
         const data = JSON.parse(saved);
         select.value = data.selectIndex || 0;
         document.getElementById('currentLv').value = data.currentLv || 1;
+        // 修正箇所：保存された初期経験値があれば読み込む
+        if (data.baseExp !== undefined) {
+            document.getElementById('baseExp').value = data.baseExp;
+        }
         document.getElementById('rings').value = data.rings || 0;
         document.getElementById('hourlyExp').value = data.hourlyExp || 30000;
+        
+        // 第2引数をfalseにして初期経験値のリセットを防ぐ
         loadAccData(false);
-    } else { loadAccData(); }
+    } else { 
+        loadAccData(); 
+    }
 };
 
 function loadAccData(resetBaseExp = true) {
     const acc = accMaster[select.value];
-    if (acc && resetBaseExp) { document.getElementById('baseExp').value = acc.exp; }
+    // アクセ切替時のみ初期経験値を自動入力する
+    if (acc && resetBaseExp) { 
+        document.getElementById('baseExp').value = acc.exp; 
+    }
     saveAndCalc();
 }
 
